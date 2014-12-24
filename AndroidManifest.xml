@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.peyo.rtptvinput">
+    
+    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <service android:name="RtpTvInputService"
+                 android:permission="android.permission.BIND_TV_INPUT"
+                 android:process=":RtpTvInputService">
+            <intent-filter>
+                <action android:name="android.media.tv.TvInputService" />
+            </intent-filter>
+            <meta-data android:name="android.media.tv.input"
+                       android:resource="@xml/rtptvinputservice" />
+        </service>
+        <activity android:name="RtpTvInputSetupActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
