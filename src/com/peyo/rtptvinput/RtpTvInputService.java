@@ -9,11 +9,23 @@ import android.net.Uri;
 import android.util.Log;
 import android.view.Surface;
 
-public class RtpTvInputService extends TvInputService {
-	static {
-		System.loadLibrary("rtp_sink");
-	}
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultAllocator;
 
+import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS;
+import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS;
+import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MAX_BUFFER_MS;
+import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MIN_BUFFER_MS;
+
+public class RtpTvInputService extends TvInputService {
     private static final String TAG = "RtpTvInputService";
 	private int mChannel = 0;
 	private String mChannelName = null;
@@ -23,16 +35,12 @@ public class RtpTvInputService extends TvInputService {
 		Log.i(TAG, "OnCreateSession() inputId : " + inputId);
 		return new SessionImpl(this);
 	}
-	
-	private native final void startSink(String address, int port, Surface surface);
-	private native final void stopSink();
 
 	private class SessionImpl extends TvInputService.Session {
-
+		private SimpleExoPlayer mExoPlayer;
 		private String mAddress;
 		private Surface mSurface;
 		private boolean mStartPlay;
-		Thread mThread;
 
 		public SessionImpl(Context context) {
 			super(context);
@@ -43,6 +51,13 @@ public class RtpTvInputService extends TvInputService {
 		@Override
 		public void onRelease() {
 	    	stopVideo();
+		}
+
+		private void stopVideo() {
+			if (mExoPlayer != null) {
+				mExoPlayer.release();
+				mExoPlayer = null;
+			}
 		}
 
 		@Override
@@ -62,7 +77,8 @@ public class RtpTvInputService extends TvInputService {
 			if (mSurface != null && mStartPlay) {
 				playVideo();
 			} else {
-		    	stopSink();
+				if (mExoPlayer != null) mStartPlay = true;
+				stopVideo();
 			}
 			return true;
 		}
@@ -98,43 +114,38 @@ public class RtpTvInputService extends TvInputService {
 
 
 		private void playVideo() {
-			mAddress = "233.15.200.";
-			mAddress += String.valueOf(mChannel);
+			mAddress = "udp://233.15.200.";
+			mAddress += String.valueOf(mChannel) + ":5000";
 			Log.i(TAG, "playVideo() : " + mAddress);
-			stopVideo();
-			mThread = new Thread(new Runnable(){
+
+			mExoPlayer = ExoPlayerFactory.newSimpleInstance(getBaseContext(),
+					new DefaultTrackSelector(null),
+					new DefaultLoadControl(
+							new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
+							DEFAULT_MIN_BUFFER_MS/5, DEFAULT_MAX_BUFFER_MS/5,
+							DEFAULT_BUFFER_FOR_PLAYBACK_MS/5,
+							DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS/5), null);
+
+			mExoPlayer.setVideoSurface(mSurface);
+			MediaSource source = new ExtractorMediaSource(Uri.parse(mAddress),
+					new DataSource.Factory() {
+						public DataSource createDataSource() {
+							return new RtpDataSource(); } },
+					new DefaultExtractorsFactory(), null, null);
+			mExoPlayer.prepare(source);
+			mExoPlayer.setPlayWhenReady(true);
+
+			mStartPlay = false;
+			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					startSink(mAddress, 5000, mSurface);
-					Log.i(TAG, "startSink() thread stopped");
+					try {
+						Thread.sleep(1300);
+					} catch (InterruptedException e) {
+					}
+					notifyVideoAvailable();
 				}
-			});
-			mThread.start();
-	        try {
-				Thread.sleep(1200);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-        	notifyVideoAvailable();
-			mStartPlay = false;
-		}
-		
-		private void stopVideo() {
-			if (mThread != null) {
-				stopSink();
-				try {
-					mThread.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				Log.i(TAG, "stopVideo() thread joined");	
-				mThread = null;
-		        try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+			}).run();
 		}
 	}
 }
