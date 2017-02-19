@@ -1,52 +1,82 @@
 package com.peyo.rtptvinput;
 
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.media.tv.TvContract;
+import android.content.ComponentName;
 import android.media.tv.TvInputInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+
+import com.google.android.media.tv.companionlibrary.ChannelSetupFragment;
+import com.google.android.media.tv.companionlibrary.EpgSyncJobService;
 
 public class RtpTvInputSetupActivity extends Activity {
-    private static final String TAG = "RtpTvInputSetupActivity";
-	private String mInputId;
-	private ContentResolver mResolver;
-
+	private static final String TAG = "RtpTvInputSetupActivity";
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mInputId = getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
-		if (mInputId != null) {
-			Log.i(TAG, "onCreate() inputId : " + mInputId);
-			mResolver = getContentResolver();
-			clearChannels();
-			insertChannels();
-		}
-		finish();
+		setContentView(R.layout.activity_setup);
 	}
 
-    private void clearChannels() {
-        Uri uri = TvContract.buildChannelsUriForInput(mInputId);
-        int n = mResolver.delete(uri, null, null);
-        Log.i(TAG, "clearChannels() " + n + " channels");
-    }
-    
-    private void insertChannel(int num, String name) {
-    	ContentValues values = new ContentValues();
-    	values.put(TvContract.Channels.COLUMN_INPUT_ID, mInputId);
-        values.put(TvContract.Channels.COLUMN_SERVICE_ID, num);
-        values.put(TvContract.Channels.COLUMN_DISPLAY_NUMBER, num);
-        values.put(TvContract.Channels.COLUMN_DISPLAY_NAME, name);
-    	Uri uri = mResolver.insert(TvContract.Channels.CONTENT_URI, values);
-    	Log.i(TAG, "insertChannel() " + uri);
-    }
-    
-    private void insertChannels() {
-        insertChannel(146, "ChannelA");
-        insertChannel(147, "JTBC");
-        insertChannel(149, "MBN");
-        insertChannel(150, "YTV");
-    }
+	public static class SetupFragment extends ChannelSetupFragment {
+		private String mInputId;
+		private Button mButton;
+
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			mInputId = getActivity().getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			View view = super.onCreateView(inflater, container, savedInstanceState);
+			setChannelListVisibility(true);
+			mButton = (Button) view.findViewById(com.google.android.media.tv.companionlibrary.R.id.tune_cancel);
+			mButton.setVisibility(View.GONE);
+			return view;
+		}
+
+		private static final int EPG_DURATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // 1 Week
+		@Override
+		public void onScanStarted() {
+			if (mInputId == null) {
+				getActivity().finish();
+			} else {
+				Log.i(TAG, "onScanStarted");
+				EpgSyncJobService.cancelAllSyncRequests(getActivity());
+				EpgSyncJobService.requestImmediateSync(getActivity(), mInputId, EPG_DURATION_MILLIS,
+						new ComponentName(getActivity(), EpgSyncService.class));
+			}
+		}
+
+		@Override
+		public String getInputId() {
+			return mInputId;
+		}
+
+		@Override
+		public void onScanFinished() {
+			Log.i(TAG, "onScanStopped");
+			EpgSyncJobService.cancelAllSyncRequests(getActivity());
+			getActivity().setResult(Activity.RESULT_OK);
+			finishAfter(3);
+		}
+
+		private void finishAfter(final int sec) {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(sec * 1000);
+					} catch (InterruptedException e) {
+					}
+					getActivity().finish();
+				}
+			}).run();
+		}
+	}
 }

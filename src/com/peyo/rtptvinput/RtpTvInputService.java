@@ -28,8 +28,7 @@ import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MIN_BUFFE
 public class RtpTvInputService extends TvInputService {
     private static final String TAG = "RtpTvInputService";
 	private int mChannel = 0;
-	private String mChannelName = null;
-	
+
 	@Override
 	public Session onCreateSession(String inputId) {
 		Log.i(TAG, "OnCreateSession() inputId : " + inputId);
@@ -101,17 +100,15 @@ public class RtpTvInputService extends TvInputService {
 
 		private boolean changeChannel(Uri uri) {
 			int oldChannel = mChannel;
-			String[] projection = { TvContract.Channels.COLUMN_DISPLAY_NUMBER, TvContract.Channels.COLUMN_DISPLAY_NAME };
+			String[] projection = { TvContract.Channels.COLUMN_SERVICE_ID};
 			Cursor cursor = getContentResolver().query(uri, projection,	null, null, null);
 			if (cursor.getCount() > 0) {
 				cursor.moveToFirst();
 				mChannel = cursor.getInt(0);
-				mChannelName = cursor.getString(1);
-				Log.i(TAG, "changeChannel() to " + mChannel + " " + mChannelName);
+				Log.i(TAG, "changeChannel() to " + mChannel);
 			}
 			return oldChannel != mChannel;
 		}
-
 
 		private void playVideo() {
 			mAddress = "udp://233.15.200.";
