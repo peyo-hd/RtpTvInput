@@ -27,7 +27,6 @@ import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MIN_BUFFE
 
 public class RtpTvInputService extends TvInputService {
     private static final String TAG = "RtpTvInputService";
-	private int mChannel = 0;
 
 	@Override
 	public Session onCreateSession(String inputId) {
@@ -37,13 +36,14 @@ public class RtpTvInputService extends TvInputService {
 
 	private class SessionImpl extends TvInputService.Session {
 		private SimpleExoPlayer mExoPlayer;
-		private String mAddress;
+		private int mChannel;
 		private Surface mSurface;
 		private boolean mStartPlay;
 
 		public SessionImpl(Context context) {
 			super(context);
 			notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
+			mChannel = 0;
 			mStartPlay = false;
 		}
 
@@ -111,9 +111,9 @@ public class RtpTvInputService extends TvInputService {
 		}
 
 		private void playVideo() {
-			mAddress = "udp://233.15.200.";
-			mAddress += String.valueOf(mChannel) + ":5000";
-			Log.i(TAG, "playVideo() : " + mAddress);
+			String addr = "udp://233.15.200.";
+			addr += String.valueOf(mChannel) + ":5000";
+			Log.i(TAG, "playVideo() : " + addr);
 
 			mExoPlayer = ExoPlayerFactory.newSimpleInstance(getBaseContext(),
 					new DefaultTrackSelector(null),
@@ -124,7 +124,7 @@ public class RtpTvInputService extends TvInputService {
 							DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS/5), null);
 
 			mExoPlayer.setVideoSurface(mSurface);
-			MediaSource source = new ExtractorMediaSource(Uri.parse(mAddress),
+			MediaSource source = new ExtractorMediaSource(Uri.parse(addr),
 					new DataSource.Factory() {
 						public DataSource createDataSource() {
 							return new RtpDataSource(); } },

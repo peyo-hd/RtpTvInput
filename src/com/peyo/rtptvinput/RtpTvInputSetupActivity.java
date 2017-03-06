@@ -23,7 +23,6 @@ public class RtpTvInputSetupActivity extends Activity {
 
 	public static class SetupFragment extends ChannelSetupFragment {
 		private String mInputId;
-		private Button mButton;
 
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -35,8 +34,8 @@ public class RtpTvInputSetupActivity extends Activity {
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 			View view = super.onCreateView(inflater, container, savedInstanceState);
 			setChannelListVisibility(true);
-			mButton = (Button) view.findViewById(com.google.android.media.tv.companionlibrary.R.id.tune_cancel);
-			mButton.setVisibility(View.GONE);
+			Button button = (Button) view.findViewById(com.google.android.media.tv.companionlibrary.R.id.tune_cancel);
+			button.setVisibility(View.GONE);
 			return view;
 		}
 

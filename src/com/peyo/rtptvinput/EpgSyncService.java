@@ -27,8 +27,8 @@ public class EpgSyncService extends EpgSyncJobService {
     private TvListing getTvListing() {
         TvListing listing = null;
         try {
-            URL url = new URL("https://xxx");
-            listing = XmlTvParser.parse(new BufferedInputStream(url.openStream()));
+            URL epgXml = new URL("https://xxx");
+            listing = XmlTvParser.parse(new BufferedInputStream(epgXml.openStream()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (XmlTvParser.XmlTvParseException e) {
