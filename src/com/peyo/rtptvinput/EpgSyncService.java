@@ -14,6 +14,10 @@ import java.net.URL;
 import java.util.List;
 
 public class EpgSyncService extends EpgSyncJobService {
+    static public final String MULTICAST_ADDR = "udp://xxx.";
+    static public final String MULTICAST_PORT = ":yyy";
+    static private final String EPG_URL = "https://zzz";
+
     @Override
     public List<Channel> getChannels() {
         return getTvListing().getChannels();
@@ -27,7 +31,7 @@ public class EpgSyncService extends EpgSyncJobService {
     private TvListing getTvListing() {
         TvListing listing = null;
         try {
-            URL epgXml = new URL("https://xxx");
+            URL epgXml = new URL(EPG_URL);
             listing = XmlTvParser.parse(new BufferedInputStream(epgXml.openStream()));
         } catch (IOException e) {
             e.printStackTrace();

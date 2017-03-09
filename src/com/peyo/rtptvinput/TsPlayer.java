@@ -1,6 +1,7 @@
 package com.peyo.rtptvinput;
 
 import android.content.Context;
+import android.media.PlaybackParams;
 import android.net.Uri;
 import android.view.Surface;
 
@@ -12,8 +13,8 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultAllocator;
+import com.peyo.rtptvinput.source.TsDataSourceFactory;
 
 import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS;
 import static com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS;
@@ -25,42 +26,66 @@ public class TsPlayer {
     private SimpleExoPlayer mExoPlayer;
     private Surface mSurface;
     private boolean mWaitForSurface;
-    private Uri mUri;
+    private MediaSource mSource;
     private Listener mListener;
+    private TsDataSourceFactory mSourceFactory;
+
+    public void setPlaybackParams(PlaybackParams params) {
+         if (mExoPlayer != null) {
+            mExoPlayer.setPlaybackParams(params);
+        }
+    }
+
+    public void seekTo(long position) {
+        if (mExoPlayer != null) {
+            mExoPlayer.seekTo(position);
+        }
+    }
 
     public interface Listener {
         void onPlayStarted();
     }
 
-    public TsPlayer(Context context) {
+    public TsPlayer(Context context, Listener listener) {
         mContext = context;
         mWaitForSurface = false;
         mSurface = null;
         mExoPlayer = null;
-        mListener = null;
+        mListener = listener;
     }
 
-    public void setListener(Listener listener) {
-        mListener = listener;
+    public void setDataSourceFactory(TsDataSourceFactory dataSourceManager) {
+        mSourceFactory = dataSourceManager;
     }
 
     public void setSurface(Surface surface) {
         mSurface = surface;
         if (mSurface != null && mWaitForSurface) {
             mWaitForSurface = false;
-            playRtp();
+            play();
         } else {
             stop();
         }
     }
 
-    public void startRtp(Uri uri) {
-        mUri = uri;
+    public void start() {
         if (mSurface == null) {
             mWaitForSurface = true;
         } else {
             mWaitForSurface = false;
-            playRtp();
+            play();
+        }
+    }
+
+    public void pause() {
+        if (mExoPlayer != null) {
+            mExoPlayer.setPlayWhenReady(false);
+        }
+    }
+
+    public void resume() {
+        if (mExoPlayer != null) {
+            mExoPlayer.setPlayWhenReady(true);
         }
     }
 
@@ -72,7 +97,13 @@ public class TsPlayer {
         mWaitForSurface = false;
     }
 
-    private void playRtp() {
+    public void setRtpSource(String addr) {
+        mSource = new ExtractorMediaSource(Uri.parse(addr),
+                mSourceFactory,
+                new DefaultExtractorsFactory(), null, null);
+    }
+
+    private void play() {
         mExoPlayer = ExoPlayerFactory.newSimpleInstance(mContext,
                 new DefaultTrackSelector(null),
                 new DefaultLoadControl(
@@ -93,15 +124,17 @@ public class TsPlayer {
         });
 
         mExoPlayer.setVideoSurface(mSurface);
-        MediaSource source = new ExtractorMediaSource(mUri,
-                new DataSource.Factory() {
-                    public DataSource createDataSource() {
-                        return new RtpDataSource();
-                    }
-                },
-                new DefaultExtractorsFactory(), null, null);
-        mExoPlayer.prepare(source);
+        mExoPlayer.prepare(mSource);
         mExoPlayer.setPlayWhenReady(true);
     }
+
+    public long getCurrentPosition() {
+        if (mExoPlayer != null) {
+            return mExoPlayer.getCurrentPosition();
+        } else {
+            return 0;
+        }
+    }
+
 
 }
