@@ -97,8 +97,8 @@ public class TsPlayer {
         mWaitForSurface = false;
     }
 
-    public void setRtpSource(String addr) {
-        mSource = new ExtractorMediaSource(Uri.parse(addr),
+    public void setDataSource(String uri) {
+        mSource = new ExtractorMediaSource(Uri.parse(uri),
                 mSourceFactory,
                 new DefaultExtractorsFactory(), null, null);
     }

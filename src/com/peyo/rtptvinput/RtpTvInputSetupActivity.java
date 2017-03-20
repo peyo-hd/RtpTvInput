@@ -1,5 +1,6 @@
 package com.peyo.rtptvinput;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.media.tv.TvInputInfo;
@@ -15,10 +16,20 @@ import com.google.android.media.tv.companionlibrary.EpgSyncJobService;
 
 public class RtpTvInputSetupActivity extends Activity {
 	private static final String TAG = "RtpTvInputSetupActivity";
+
+	public static final String DVR_DIR = "/Movies/DVR";
+	public static final String MULTICAST_ADDR = "udp://xxx.";
+	public static final String MULTICAST_PORT = ":yyy";
+	public static final String EPG_URL = "https://zzz";
+	private static final int EPG_DURATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // 1 Week
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_setup);
+		String permissions[] = { Manifest.permission.READ_EXTERNAL_STORAGE,
+			Manifest.permission.WRITE_EXTERNAL_STORAGE };
+		requestPermissions(permissions, 0);
 	}
 
 	public static class SetupFragment extends ChannelSetupFragment {
@@ -39,7 +50,6 @@ public class RtpTvInputSetupActivity extends Activity {
 			return view;
 		}
 
-		private static final int EPG_DURATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // 1 Week
 		@Override
 		public void onScanStarted() {
 			if (mInputId == null) {

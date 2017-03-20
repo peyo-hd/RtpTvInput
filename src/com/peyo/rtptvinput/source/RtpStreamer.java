@@ -3,6 +3,7 @@ package com.peyo.rtptvinput.source;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.UdpDataSource;
@@ -12,6 +13,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class RtpStreamer implements TsStreamer {
     private static final String TAG = "RtpStreamer";
+    private final Uri mUri;
+
+    public RtpStreamer(Uri uri) {
+        mUri = uri;
+    }
 
     @Override
     public TsDataSource createDataSource() {
@@ -31,13 +37,7 @@ public class RtpStreamer implements TsStreamer {
         @Override
         public long open(DataSpec dataSpec) throws IOException {
             mLastReadPosition.set(0);
-
-            mUdpSource = new UdpDataSource(null, MAX_PACKET_SIZE, 0);
-            long ret = mUdpSource.open(dataSpec);
-
-            startStream();
-
-            return ret;
+            return C.LENGTH_UNSET;
         }
 
         @Override
@@ -52,13 +52,11 @@ public class RtpStreamer implements TsStreamer {
 
         @Override
         public Uri getUri() {
-            return mUdpSource.getUri();
+            return mStreamer.mUri;
         }
 
         @Override
         public void close() throws IOException {
-            stopStream();
-            mUdpSource.close();
         }
 
         @Override
@@ -94,6 +92,7 @@ public class RtpStreamer implements TsStreamer {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+                    continue;
                 }
 
                 int startPos = (int) (pos % CIRCULAR_BUFFER_SIZE);
@@ -112,16 +111,25 @@ public class RtpStreamer implements TsStreamer {
 
     private static final int RTP_HEADER_SIZE = 12;
     private static final int MAX_PACKET_SIZE = 2048;
-    private static final int CIRCULAR_BUFFER_SIZE = MAX_PACKET_SIZE * 512 * 64; // 64MB
+    private static final int CIRCULAR_BUFFER_SIZE = MAX_PACKET_SIZE * 512 * 32; // 32MB
     private final Object mCircularBufferMonitor = new Object();
     private final byte[] mCircularBuffer = new byte[CIRCULAR_BUFFER_SIZE];
 
     private DataSource mUdpSource;
     private long mBytesFetched;
     private boolean mStreaming;
+    private StreamingThread mStreamingThread;
 
     @Override
     public void startStream() {
+        mUdpSource = new UdpDataSource(null, MAX_PACKET_SIZE, 0);
+        try {
+            mUdpSource.open(new DataSpec(mUri));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
         synchronized (mCircularBufferMonitor) {
             if (mStreaming) {
                 Log.w(TAG, "Streaming should be stopped before start streaming");
@@ -130,11 +138,12 @@ public class RtpStreamer implements TsStreamer {
             mStreaming = true;
             mBytesFetched = 0;
         }
+        mStreamingThread = new StreamingThread();
         mStreamingThread.start();
         Log.i(TAG, "Streaming started");
     }
 
-    private Thread mStreamingThread = new Thread() {
+    private class StreamingThread extends Thread {
         @Override
         public void run() {
             byte[] dataBuffer = new byte[UdpDataSource.DEFAULT_MAX_PACKET_SIZE];
@@ -173,7 +182,7 @@ public class RtpStreamer implements TsStreamer {
             }
             Log.i(TAG, "Streaming stopped");
         }
-    };
+    }
 
     public long getBufferedPosition() {
         synchronized (mCircularBufferMonitor) {
@@ -193,6 +202,11 @@ public class RtpStreamer implements TsStreamer {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+        try {
+            mUdpSource.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId "com.peyo.rtptvinput"
-        minSdkVersion 25
+        minSdkVersion 24
         targetSdkVersion 25
     }
 
@@ -39,7 +39,7 @@ android {
 }
 
 dependencies {
-    compile 'com.google.android.exoplayer:exoplayer:r2.2.0'
+    compile 'com.google.android.exoplayer:exoplayer:r2.3.0'
     compile 'com.android.support:leanback-v17:25.+'
     compile 'com.google.android.libraries.tv:companionlibrary:0.1'
 }
