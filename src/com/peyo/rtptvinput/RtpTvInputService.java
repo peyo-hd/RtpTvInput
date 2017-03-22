@@ -184,7 +184,8 @@ public class RtpTvInputService extends TvInputService {
 
 	private String getRtpAddress(int serviceId) {
 		return RtpTvInputSetupActivity.MULTICAST_ADDR
-				+ String.valueOf(serviceId)
+				+ String.valueOf((serviceId >> 8) & 255) + "."
+				+ String.valueOf(serviceId & 255)
 				+ RtpTvInputSetupActivity.MULTICAST_PORT;
 	}
 
