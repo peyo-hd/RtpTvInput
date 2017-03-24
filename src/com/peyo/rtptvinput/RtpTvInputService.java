@@ -121,19 +121,15 @@ public class RtpTvInputService extends TvInputService {
 
 		@Override
 		public void onTimeShiftPause() {
-			if (mPlayer != null) {
-				Log.i(TAG, "TimeShiftPause");
-				mPlayer.pause();
-			}
+			Log.i(TAG, "TimeShiftPause");
+			mPlayer.pause();
 		}
 
 		@Override
 		public void onTimeShiftResume() {
-			if (mPlayer != null) {
-				Log.i(TAG, "TimeShiftResume");
-				mPlayer.setPlaybackParams(new PlaybackParams().setSpeed(1));
-				mPlayer.resume();
-			}
+			Log.i(TAG, "TimeShiftResume");
+			mPlayer.setPlaybackParams(new PlaybackParams().setSpeed(1));
+			mPlayer.resume();
 		}
 
 		@Override
@@ -146,7 +142,7 @@ public class RtpTvInputService extends TvInputService {
 		@Override
 		public void onTimeShiftSetPlaybackParams(PlaybackParams params) {
 			float speed = params.getSpeed();
-			if (mPlayer != null && (speed == 1.0f || speed == 2.0f) ) {
+			if (1.0f <= speed && speed <= 4.0f) {
 				Log.i(TAG, "SetPlaybackParams " + params.getSpeed());
 				mPlayer.setPlaybackParams(params);
 				mPlayer.resume();
@@ -160,11 +156,7 @@ public class RtpTvInputService extends TvInputService {
 
 		@Override
 		public long onTimeShiftGetCurrentPosition() {
-			long currentTimeMs = mBufferStartTimeMs;
-
-			if (mPlayer != null) {
-				currentTimeMs += mPlayer.getCurrentPosition();
-			}
+			long currentTimeMs = mBufferStartTimeMs + mPlayer.getCurrentPosition();
 			//Log.i(TAG, "GetCurrentPosition " + DateFormat.getTimeInstance().format(new Date(currentTimeMs)));
 			return currentTimeMs;
 		}
