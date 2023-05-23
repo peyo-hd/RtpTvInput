@@ -2,19 +2,31 @@ package com.peyo.rtptvinput;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.view.Surface;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.audio.AudioSink;
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultAllocator;
+import com.google.android.exoplayer2.util.Clock;
+import com.google.android.exoplayer2.util.HandlerWrapper;
 import com.peyo.rtptvinput.source.TsDataSourceFactory;
+import com.peyo.rtptvinput.testutil.FakeAudioRenderer;
+import com.peyo.rtptvinput.testutil.FakeClock;
+
+import java.util.ArrayList;
 
 public class TsPlayer {
     private final Context mContext;
@@ -110,8 +122,23 @@ public class TsPlayer {
                     DEFAULT_RETAIN_BACK_BUFFER_FROM_KEYFRAME);
         }
     }
+
+    private Clock clock;
+    private class FakeAudioRendererFactory extends DefaultRenderersFactory {
+        public FakeAudioRendererFactory(Context context) {
+            super(context);
+        }
+        @Override
+        protected void buildAudioRenderers(Context context, int extensionRendererMode, MediaCodecSelector mediaCodecSelector, boolean enableDecoderFallback, AudioSink audioSink, Handler eventHandler, AudioRendererEventListener eventListener, ArrayList<Renderer> out) {
+            clock = new FakeClock(true);
+            HandlerWrapper clockAwareHandler =
+                    clock.createHandler(eventHandler.getLooper(), null);
+            out.add(new FakeAudioRenderer(clockAwareHandler, eventListener));
+        }
+    }
+
     private void play() {
-        mExoPlayer = new ExoPlayer.Builder(mContext)
+        mExoPlayer = new ExoPlayer.Builder(mContext /*, new FakeAudioRendererFactory(mContext)*/)
                 .setTrackSelector(new DefaultTrackSelector(mContext))
                 .setLoadControl(new TsLoadControl()).build();
 
