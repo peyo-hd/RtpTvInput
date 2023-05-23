@@ -1,6 +1,5 @@
 package com.peyo.rtptvinput.source;
 
-import android.media.tv.TvInputService;
 import android.net.Uri;
 import android.util.Log;
 

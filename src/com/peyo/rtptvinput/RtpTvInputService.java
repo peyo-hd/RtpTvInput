@@ -11,10 +11,11 @@ import android.media.tv.TvContract;
 import android.media.tv.TvInputManager;
 import android.media.tv.TvInputService;
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.Surface;
 
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.peyo.rtptvinput.source.TsDataSourceFactory;
 import com.peyo.rtptvinput.source.TsRecorder;
 import com.peyo.rtptvinput.source.TsStreamWriter;
@@ -128,7 +129,7 @@ public class RtpTvInputService extends TvInputService {
 		@Override
 		public void onTimeShiftResume() {
 			Log.i(TAG, "TimeShiftResume");
-			mPlayer.setPlaybackParams(new PlaybackParams().setSpeed(1));
+			mPlayer.setPlaybackParams(new PlaybackParameters(1));
 			mPlayer.resume();
 		}
 
@@ -144,7 +145,7 @@ public class RtpTvInputService extends TvInputService {
 			float speed = params.getSpeed();
 			if (1.0f <= speed && speed <= 4.0f) {
 				Log.i(TAG, "SetPlaybackParams " + params.getSpeed());
-				mPlayer.setPlaybackParams(params);
+				mPlayer.setPlaybackParams(new PlaybackParameters(speed));
 				mPlayer.resume();
 			}
 		}

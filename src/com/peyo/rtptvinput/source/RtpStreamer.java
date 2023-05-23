@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.upstream.UdpDataSource;
 
 import java.io.IOException;
@@ -32,6 +33,11 @@ public class RtpStreamer implements TsStreamer {
         public RtpDataSource(RtpStreamer streamer) {
             mStreamer = streamer;
             mStartBufferedPosition = streamer.getBufferedPosition();
+        }
+
+        @Override
+        public void addTransferListener(TransferListener transferListener) {
+
         }
 
         @Override
@@ -122,7 +128,7 @@ public class RtpStreamer implements TsStreamer {
 
     @Override
     public void startStream() {
-        mUdpSource = new UdpDataSource(null, MAX_PACKET_SIZE, 0);
+        mUdpSource = new UdpDataSource(MAX_PACKET_SIZE);
         try {
             mUdpSource.open(new DataSpec(mUri));
         } catch (IOException e) {

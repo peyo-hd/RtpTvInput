@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.peyo.rtptvinput">
     
@@ -11,14 +12,16 @@
     <application
         android:theme="@style/Theme.Leanback">
         <service android:name="RtpTvInputService"
-                 android:permission="android.permission.BIND_TV_INPUT">
+                 android:permission="android.permission.BIND_TV_INPUT"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.tv.TvInputService" />
             </intent-filter>
             <meta-data android:name="android.media.tv.input"
                        android:resource="@xml/rtptvinputservice" />
         </service>
-        <activity android:name="RtpTvInputSetupActivity">
+        <activity android:name="RtpTvInputSetupActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

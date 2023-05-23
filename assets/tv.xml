@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tv>
+  <channel id="997">
+    <display-name>Focus PRIME</display-name>
+    <display-number>997</display-number>
+    <service-id>40607</service-id>
+  </channel>
+  <channel id="998">
+    <display-name>GENIE TV GUIDE</display-name>
+    <display-number>998</display-number>
+    <service-id>40654</service-id>
+  </channel>
+</tv>

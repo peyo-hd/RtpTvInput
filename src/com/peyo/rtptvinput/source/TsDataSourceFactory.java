@@ -6,6 +6,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.FileDataSource;
+import com.google.android.exoplayer2.upstream.TransferListener;
 
 import java.io.IOException;
 
@@ -38,10 +39,15 @@ public class TsDataSourceFactory implements DataSource.Factory {
         private DataSource dataSource;
 
         @Override
+        public void addTransferListener(TransferListener transferListener) {
+
+        }
+
+        @Override
         public long open(DataSpec dataSpec) throws IOException {
             String uri = dataSpec.uri.toString();
             if (uri.startsWith("file://")) {
-                dataSource = new FileDataSource(null);
+                dataSource = new FileDataSource();
             } else if (uri.startsWith("udp://")) {
                 dataSource = mStreamManager.createDataSource(dataSpec.uri, mId);
             } else {

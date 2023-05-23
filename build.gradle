@@ -1,32 +1,28 @@
 buildscript {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.android.tools.build:gradle:7.3.1'
     }
 }
 
 apply plugin: 'com.android.application'
 
 repositories {
+    google()
+    mavenCentral()
     jcenter()
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.peyo.rtptvinput"
-        minSdkVersion 24
-        targetSdkVersion 25
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
+        minSdkVersion 30
+        targetSdkVersion 33
     }
 
     sourceSets {
@@ -34,12 +30,14 @@ android {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
             res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
         }
     }
 }
 
 dependencies {
-    compile 'com.google.android.exoplayer:exoplayer:r2.4.0'
-    compile 'com.android.support:leanback-v17:25.+'
-    compile 'com.google.android.libraries.tv:companionlibrary:0.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.7'
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'com.google.android.libraries.tv:companionlibrary:0.1'
+    implementation 'junit:junit:4.13.2'
 }

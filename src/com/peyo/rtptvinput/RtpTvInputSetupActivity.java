@@ -18,9 +18,8 @@ public class RtpTvInputSetupActivity extends Activity {
 	private static final String TAG = "RtpTvInputSetupActivity";
 
 	public static final String DVR_DIR = "/Movies/DVR";
-	public static final String MULTICAST_ADDR = "udp://xxx.";
-	public static final String MULTICAST_PORT = ":yyy";
-	public static final String EPG_URL = "https://zzz";
+	public static final String MULTICAST_ADDR = "udp://233.18.";
+	public static final String MULTICAST_PORT = ":5000";
 	private static final int EPG_DURATION_MILLIS = 1000 * 60 * 60 * 24 * 7; // 1 Week
 
 	@Override

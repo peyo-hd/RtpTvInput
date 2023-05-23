@@ -10,6 +10,7 @@ import com.peyo.rtptvinput.XmlTvParser.TvListing;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
@@ -28,8 +29,8 @@ public class EpgSyncService extends EpgSyncJobService {
     private TvListing getTvListing() {
         TvListing listing = null;
         try {
-            URL epgXml = new URL(RtpTvInputSetupActivity.EPG_URL);
-            listing = XmlTvParser.parse(new BufferedInputStream(epgXml.openStream()));
+            InputStream is = getAssets().open("tv.xml");
+            listing = XmlTvParser.parse(is);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (XmlTvParser.XmlTvParseException e) {
